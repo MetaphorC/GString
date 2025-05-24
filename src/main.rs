@@ -1,28 +1,24 @@
 
-#![allow(unused)]
+use std::env;
+use std::process;
 
-use clap::Parser; 
+use gstring::Config;
 
-// Search for a pattern in a file and display the lines that contain it.
-#[derive(Parser)]
-struct Cli {
-    // The pattern to look for 
-    pattern: String,
-    // The path to the file to read
-    path: std::path::PathBuf,
+fn main() {
+    let args: Vec<String> = env::args().collect();
 
-}
+    let config = Config::build(&args).unwrap_or_else(|err| {
+        println!("Problem parsing arguments: {err}");
+        process::exit(1);
+    });
 
-#[derive(Debug)]
-struct CustomError(String);
+    println!("Searching for {}", config.query);
+    println!("In file {}", config.file_path);
 
-use anyhow::{Context, Result};
+    if let Err(e) = gstring::run(config) {
+        println!("Application error: {e}");
+        process::exit(1);
+    }
 
-fn main() -> Result<()> {
-    let path = "test.txt";
-    let content = std::fs::read_to_string(path)
-        .with_context(|| format!("could not read file `{}`", path))?;
-    println!("file content: {}", content);
-    Ok(())
 }
 
